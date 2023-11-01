@@ -5,8 +5,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:provider/provider.dart';
 
 import '../../model/user.dart';
+import '../../providers/user.dart';
 import '../../utils/components/customButton.dart';
 import '../../utils/components/textInput.dart';
 
@@ -176,9 +178,6 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
           email: _email.text, password: _password.text
 
       ).then((value) async{
-
-        await Hive.openBox<UserModel>('userdb');
-        await Hive.box<UserModel>('userdb');
         Navigator.pushNamed(context, HomeScreen.routeName);});
 
     } catch (e) {
@@ -196,6 +195,15 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
             );
           });
       print('Login error: $e');
+    }
+  }
+  getData() {
+    Hive.openBox<UserModel>('userdb');
+    final db = Hive.box<UserModel>('userdb');
+
+    if (db.isEmpty) {
+      final provider = Provider.of<UserProvider>(context, listen: false);
+      provider.getUsersFromFirestore();
     }
   }
 }
