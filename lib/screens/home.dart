@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bridesandgrooms/model/user.dart';
 import 'package:bridesandgrooms/providers/user.dart';
 import 'package:bridesandgrooms/screens/profile.dart';
@@ -20,91 +22,109 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
-    /*Provider.of<UserProvider>(context, listen: false)
-        .fetchUserDataAndStoreInHive();
-    Hive.box<UserModel>('userdb');*/
+    Hive.openBox<UserModel>('userdb');
+    Hive.box<UserModel>('userdb');
     getData();
+
+    print("object ${Hive.box<UserModel>('userdb').length}");
     super.initState();
   }
-Future<void> getData()async {
-  final provider = Provider.of<UserProvider>(context,listen: false);
-  provider.getUsersFromFirestore().then((userList) {
-    provider.addUsersToHiveBox(userList);
-  });
-}
+
+  getData() {
+    Hive.openBox<UserModel>('userdb');
+    final db = Hive.box<UserModel>('userdb');
+
+    if (db.isEmpty) {
+      final provider = Provider.of<UserProvider>(context, listen: false);
+      provider.getUsersFromFirestore();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final userList = Hive.box<UserModel>('userdb');
     return Scaffold(
       appBar: const PreferredSize(
           preferredSize: Size.fromHeight(100), child: CustomAppBar()),
-      body: RefreshIndicator(
-        onRefresh: ()=>getData(),
-        child: Container(
-          decoration: const BoxDecoration(
-              image: DecorationImage(
-                  image: AssetImage(image_blur), fit: BoxFit.fill)),
-          child: FutureBuilder(
-            future: getData(),
-            builder: (context, snapshot) =>  GridView.builder(
-              padding: const EdgeInsets.all(5),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2, crossAxisSpacing: 10.0, mainAxisSpacing: 10.0),
-              itemCount: userList.length,
-              itemBuilder: (context, index) {
-                final user = userList.getAt(index);
-                // print("user name ${user!.name! + user.age.toString() + user.location!}");
-                return Container(
-                  padding: const EdgeInsets.symmetric(vertical: 5),
-                  //height: 250,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    border: const Border.fromBorderSide(
-                        BorderSide(color: Colors.purple)),
-                  ),
-                  child: Column(
-                    children: [
-                      Image.asset(
-                        image_logbg,
-                        height: 120,
-                        fit: BoxFit.fill,
-                      ),
-                      Expanded(
-                          child: Text(
-                        user?.name ?? "",
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.w600),
-                      )),
-                      Expanded(
-                          child: Text(
-                        user?.age.toString() ?? "",
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.w600),
-                      )),
-                      Expanded(
-                          child: Text(
-                        user?.location ?? "",
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.w600),
-                      )),
-                    ],
+      body: Container(
+        decoration: const BoxDecoration(
+            image: DecorationImage(
+                image: AssetImage(image_blur), fit: BoxFit.fill)),
+        child: FutureBuilder(
+          future: Hive.openBox<UserModel>('userdb'),
+          builder: (ctx, AsyncSnapshot snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              if (snapshot.hasError) {
+                return Center(
+                  child: Text(
+                    '${snapshot.error} occurred',
+                    style: const TextStyle(fontSize: 18),
                   ),
                 );
-              },
-            ),
-          )
 
-          /*ListView.separated(
-           separatorBuilder: (context, index) => SizedBox(height: 10,),
-            shrinkWrap: true,
-           padding: EdgeInsets.all(18),
-           //physics:const NeverScrollableScrollPhysics(),
-           itemCount: 50,
-           itemBuilder: (context, index) {
-           return const UserListItem();
-         },)*/
-          ,
+              } else if (snapshot.hasData) {
+
+                final data = Hive.box<UserModel>('userdb');
+                return RefreshIndicator(
+                  onRefresh:()=> Hive.openBox<UserModel>('userdb'),
+                  child: GridView.builder(
+                    padding: const EdgeInsets.all(5),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 10.0,
+                        mainAxisSpacing: 10.0),
+                    itemCount: data.length,
+                    itemBuilder: (context, index) {
+                      final user = data.getAt(index);
+                      return Container(
+                        padding: const EdgeInsets.symmetric(vertical: 5),
+                        //height: 250,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: const Border.fromBorderSide(
+                              BorderSide(color: Colors.purple)),
+                        ),
+                        child: Column(
+                          children: [
+                            Image.asset(
+                              image_logbg,
+                              height: 120,
+                              fit: BoxFit.fill,
+                            ),
+                            Expanded(
+                                child: Text(
+                              user?.name ?? "",
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.w600),
+                            )),
+                            Expanded(
+                                child: Text(
+                              user?.age.toString() ?? "",
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.w600),
+                            )),
+                            Expanded(
+                                child: Text(
+                              user?.location ?? "",
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.w600),
+                            )),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                );
+              }
+            }
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+
+          },
+
         ),
+
       ),
     );
   }
@@ -197,6 +217,7 @@ class CustomAppBar extends StatelessWidget {
     userList.clear();
 
     userList.delete(userList.values);
+    FirebaseAuth.instance.signOut();
 
     Navigator.of(context)
         .pushNamedAndRemoveUntil(UserLoginScreen.routeName, (route) => false)
