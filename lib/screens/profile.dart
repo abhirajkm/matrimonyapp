@@ -5,7 +5,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:provider/provider.dart';
 import 'dart:io';
+import '../providers/user.dart';
+import '../utils/components/custom_app_bar.dart';
 import '../utils/components/form_field.dart';
 import 'auth/register.dart';
 
@@ -27,6 +30,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late TextEditingController _height;
   late TextEditingController _weight;
   String? selectedGender;
+  String? url;
   final newKey = GlobalKey<FormState>();
   final GlobalKey<ScaffoldMessengerState> _scaffoldKey =
       GlobalKey<ScaffoldMessengerState>();
@@ -42,10 +46,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _location = TextEditingController();
     _height = TextEditingController();
     _weight = TextEditingController();
-
     final user = FirebaseAuth.instance.currentUser;
     if (user!.uid != null) {
-      getUserDetails(user.uid);
+      getUserDetails(user.uid).then((value) {
+        if(value!=null){
+          Provider.of<UserProvider>(context,listen:false).setProfileImage(url!);
+        }
+      });
       print(user);
     }
   }
@@ -64,11 +71,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _mobile.text = user["mobile"] ?? "";
       _location.text = user["location"] ?? "";
       selectedGender = user["gender"];
+      url=user["profileUrl"];
+
 
       print("user name = ${user["name"]}");
       print("user email = ${user["email"]}");
       print("user gender = ${user["gender"]}");
       print("user mobile = ${user["mobile"]}");
+      print("user profile= ${user["profile"]}");
     } else {
       return null;
     }
@@ -309,6 +319,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final FirebaseFirestore _firestore = FirebaseFirestore.instance;
       User? user = _auth.currentUser;
       String uid = user!.uid;
+
       await _firestore.collection('users').doc(uid).set({
         'name': _name.text,
         'email': _email.text,

@@ -19,28 +19,11 @@ class App extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: "Bride  & Groom",
         theme: appTheme,
-        home: user == null ? const UserLoginScreen() : const HomeScreen(),
+        home: user == null ?
+        const UserLoginScreen() :
+        const HomeScreen(),
         routes: AppRoutes.get(context),
       ),
     );
   }
-  /*StreamBuilder<User?> authUserCheck() {
-    return StreamBuilder(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.active) {
-          final user = snapshot.data;
-          if (user == null) {
-            return const UserRegisterScreen();
-          } else {
-            return const HomeScreen();
-          }
-        } else {
-          return const CircularProgressIndicator();
-        }
-      },
-    );
-  }*/
 }
-
-

@@ -1,12 +1,16 @@
 
+import 'package:bridesandgrooms/providers/user.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
+import 'package:provider/provider.dart';
+
 class ProfilePicUploadWidget extends StatefulWidget {
-  const ProfilePicUploadWidget({Key? key}) : super(key: key);
+  const ProfilePicUploadWidget({Key? key,}) : super(key: key);
 
   @override
   _ProfilePicUploadWidgetState createState() => _ProfilePicUploadWidgetState();
@@ -15,12 +19,15 @@ class ProfilePicUploadWidget extends StatefulWidget {
 class _ProfilePicUploadWidgetState extends State<ProfilePicUploadWidget> {
   double screenHeight = 0;
   double screenWidth = 0;
-  String profilePicLink = "";
   final ImagePicker _picker = ImagePicker();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
 
 
   Future imgFromGallery() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await _picker.pickImage(
+        imageQuality: 50,
+        source: ImageSource.gallery);
     final uid = FirebaseAuth.instance.currentUser!.uid;
     Reference ref = FirebaseStorage.instance
         .ref().child("profilepic$uid.jpg");
@@ -28,16 +35,22 @@ class _ProfilePicUploadWidgetState extends State<ProfilePicUploadWidget> {
     await ref.putFile(File(pickedFile!.path));
 
     ref.getDownloadURL().then((value) async {
-      setState(() {
-        profilePicLink = value;
+      Provider.of<UserProvider>(context,listen:false).setProfileImage(value);
+      await _firestore.collection("users").doc(uid).update({
+        "profileUrl" : value
       });
+
     });
+
 
 
   }
 
   Future imgFromCamera() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.camera);
+    final pickedFile = await _picker.pickImage(
+        source: ImageSource.camera,
+       imageQuality: 50
+    );
     final uid = FirebaseAuth.instance.currentUser!.uid;
     Reference ref = FirebaseStorage.instance
         .ref().child("profilepic$uid.jpg");
@@ -45,33 +58,22 @@ class _ProfilePicUploadWidgetState extends State<ProfilePicUploadWidget> {
     await ref.putFile(File(pickedFile!.path));
 
     ref.getDownloadURL().then((value) async {
-      setState(() {
-        profilePicLink = value;
+      Provider.of<UserProvider>(context,listen:false).setProfileImage(value);
+      await _firestore.collection("users").doc(uid).update({
+        "profileUrl" : value
       });
     });
 
   }
-  void pickUploadProfilePic() async {
-    final image = await ImagePicker().pickImage(
-      source: ImageSource.camera,
-      maxHeight: 512,
-      maxWidth: 512,
-      imageQuality: 90,
-    );
+@override
+  void initState() {
+  final uid = FirebaseAuth.instance.currentUser!.uid;
+  final provider = Provider.of<UserProvider>(context,listen:false);
+    getUserDetails(uid).then((value) {
 
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    Reference ref = FirebaseStorage.instance
-        .ref().child("profilepic$uid.jpg");
-
-    await ref.putFile(File(image!.path));
-
-    ref.getDownloadURL().then((value) async {
-      setState(() {
-        profilePicLink = value;
-      });
     });
+    super.initState();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -92,15 +94,19 @@ class _ProfilePicUploadWidgetState extends State<ProfilePicUploadWidget> {
               borderRadius: BorderRadius.circular(20),
               color: Colors.purple,
             ),
-            child: Center(
-              child: profilePicLink == "" ? const Icon(
-                Icons.person,
-                color: Colors.white,
-                size: 80,
-              ) : ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Image.network(profilePicLink),
-              ),
+            child:Consumer<UserProvider>(
+              builder: (context,user,child) {
+                return Center(
+                  child: user.imageUrl == "" ? const Icon(
+                    Icons.person,
+                    color: Colors.white,
+                    size: 80,
+                  ) : ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Image.network(user.imageUrl),
+                  ),
+                );
+              }
             ),
           ),
         ),
@@ -134,5 +140,27 @@ class _ProfilePicUploadWidgetState extends State<ProfilePicUploadWidget> {
             ),
           );
         });
+  }
+  Future<Map<String, dynamic>?> getUserDetails(String uid) async {
+    final provider = Provider.of<UserProvider>(context,listen:false);
+    DocumentSnapshot doc = await _firestore.collection('users').doc(uid).get();
+    if (doc.exists) {
+
+      final Map<String, dynamic> user = doc.data() as Map<String, dynamic>;
+      final url = user['profileUrl'] ;
+      provider.setProfileImage(url);
+
+
+      print("user name = ${user["name"]}");
+      print("user email = ${user["email"]}");
+      print("user gender = ${user["gender"]}");
+      print("user mobile = ${user["mobile"]}");
+      print("user profile= ${user["profileUrl"]}");
+
+    }
+    else {
+      return null;
+    }
+    return null;
   }
 }

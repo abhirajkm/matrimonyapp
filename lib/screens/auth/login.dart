@@ -2,16 +2,15 @@ import 'package:bridesandgrooms/screens/auth/register.dart';
 import 'package:bridesandgrooms/screens/home.dart';
 import 'package:bridesandgrooms/utils/images.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:provider/provider.dart';
-
 import '../../model/user.dart';
 import '../../providers/user.dart';
 import '../../utils/components/customButton.dart';
 import '../../utils/components/textInput.dart';
-
 
 class UserLoginScreen extends StatefulWidget {
   static const routeName = "/loginpage";
@@ -62,17 +61,17 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                   )),
               Expanded(
                 child: Container(
-                  margin: EdgeInsets.only(left: 20, right: 20),
+                  margin: const EdgeInsets.only(left: 20, right: 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 10,),
-                      const Text(
-                          "Welcome....\nLogin To Find Your\nPartner",
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      const Text("Welcome....\nLogin To Find Your\nPartner",
                           style: TextStyle(
-                              fontSize: 30,
-                              fontWeight: FontWeight.w600)),
+                              fontSize: 30, fontWeight: FontWeight.w600)),
                       const SizedBox(height: 15),
                       Form(
                           key: _formKey,
@@ -83,7 +82,8 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                             children: [
                               AuthTextInput(
                                 controller: _email,
-                                validator: EmailValidator(errorText: 'enter a valid email address'),
+                                validator: EmailValidator(
+                                    errorText: 'enter a valid email address'),
                                 hintText: "Enter Email",
                               ),
                               const SizedBox(
@@ -93,9 +93,7 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                                 controller: _password,
                                 obscureText: true,
                                 validator: MultiValidator([
-                                  RequiredValidator(
-                                      errorText:"Required"
-                                      ),
+                                  RequiredValidator(errorText: "Required"),
                                 ]),
                                 hintText: "Enter Password",
                               ),
@@ -113,8 +111,6 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                 child: Container(
                   margin: const EdgeInsets.only(left: 20, right: 20),
                   child: Button(
-
-
                     title: "Login",
                     buttonStyle: const TextStyle(
                         fontSize: 16,
@@ -139,28 +135,7 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                   ),
                 ),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    "Don't have an account?",
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(
-                    width: 5,
-                  ),
-                  InkWell(
-                      onTap: () {
-                        Navigator.pushNamed(context, UserRegisterScreen.routeName);
-                      },
-                      child: const Text("Register Here",
-                          style: TextStyle(
-                              color: Colors.green,
-                              fontSize: 14,
-                              decoration: TextDecoration.underline,
-                              fontWeight: FontWeight.w700))),
-                ],
-              ),
+              const RegisterWidget(),
               const SizedBox(
                 height: 20,
               )
@@ -173,13 +148,12 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
 
   Future<void> loginUser() async {
     try {
-     // final provider=Provider.of<UserProvider>(context,listen:false);
-      final user = await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: _email.text, password: _password.text
-
-      ).then((value) async{
-        Navigator.pushNamed(context, HomeScreen.routeName);});
-
+      await FirebaseAuth.instance
+          .signInWithEmailAndPassword(
+              email: _email.text, password: _password.text)
+          .then((value) async {
+        Navigator.pushNamed(context, HomeScreen.routeName);
+      });
     } catch (e) {
       showDialog(
           context: context,
@@ -194,16 +168,44 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
               ],
             );
           });
-      print('Login error: $e');
+      if (kDebugMode) {
+        print('Login error: $e');
+      }
     }
   }
-  getData() {
-    Hive.openBox<UserModel>('userdb');
-    final db = Hive.box<UserModel>('userdb');
 
-    if (db.isEmpty) {
-      final provider = Provider.of<UserProvider>(context, listen: false);
-      provider.getUsersFromFirestore();
-    }
+
+}
+
+class RegisterWidget extends StatelessWidget {
+  const RegisterWidget({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Text(
+          "Don't have an account?",
+          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(
+          width: 5,
+        ),
+        InkWell(
+            onTap: () {
+              Navigator.pushNamed(
+                  context, UserRegisterScreen.routeName);
+            },
+            child: const Text("Register Here",
+                style: TextStyle(
+                    color: Colors.green,
+                    fontSize: 14,
+                    decoration: TextDecoration.underline,
+                    fontWeight: FontWeight.w700))),
+      ],
+    );
   }
 }

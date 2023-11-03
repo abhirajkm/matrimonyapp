@@ -24,8 +24,8 @@ class UserModelAdapter extends TypeAdapter<UserModel> {
       age: fields[3] as String?,
       location: fields[9] as String?,
       weight: fields[5] as String?,
-      height: fields[4] as double?,
-      profilePic: fields[1] as String?,
+      height: fields[4] as String?,
+      profileUrl: fields[1] as String?,
     )..password = fields[8] as String?;
   }
 
@@ -36,7 +36,7 @@ class UserModelAdapter extends TypeAdapter<UserModel> {
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
-      ..write(obj.profilePic)
+      ..write(obj.profileUrl)
       ..writeByte(2)
       ..write(obj.mobile)
       ..writeByte(3)

@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import '../interface/user.dart';
 import '../model/user.dart';
+import '../utils/components/custom_app_bar.dart';
 import '../utils/images.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -18,7 +19,6 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-
   String? selectedLocation;
   String? maxweight;
   String? maxheight;
@@ -27,7 +27,6 @@ class _SearchScreenState extends State<SearchScreen> {
   void initState() {
     super.initState();
   }
-
 
   bool _loading = false;
 
@@ -49,12 +48,14 @@ class _SearchScreenState extends State<SearchScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 25.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center ,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   heightDropDown(),
                   weightDropDown(),
                   cityDropDown(),
-                  const SizedBox(height: 10,),
+                  const SizedBox(
+                    height: 10,
+                  ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 25.0),
                     child: SizedBox(
@@ -67,8 +68,11 @@ class _SearchScreenState extends State<SearchScreen> {
                             color: Colors.white,
                             fontWeight: FontWeight.w800),
                         loading: _loading,
-                        onPressed: () async{
-                          Provider.of<UserProvider>(context,listen:false).searchFilter(double.parse(maxheight!),double.parse(maxweight!), selectedLocation!);
+                        onPressed: () async {
+
+                          Provider.of<UserProvider>(context, listen: false)
+                              .searchFilter(double.parse(maxheight!),
+                                  double.parse(maxweight!), selectedLocation!);
                         },
                         radius: 5,
                       ),
@@ -77,21 +81,28 @@ class _SearchScreenState extends State<SearchScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 15,),
-            if(maxweight!=null&&maxheight!=null&&selectedLocation!=null)
+            const SizedBox(
+              height: 15,
+            ),
+            if (maxweight != null &&
+                maxheight != null &&
+                selectedLocation != null)
               Expanded(
-                  child:Consumer<UserProvider>(builder: (context, value, child) =>
-                      GridView.builder(
+                child: Consumer<UserProvider>(
+                  builder: (context, value, child) => GridView.builder(
                     padding: const EdgeInsets.all(5),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2, crossAxisSpacing: 10.0, mainAxisSpacing: 10.0),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 10.0,
+                            mainAxisSpacing:10.0,
+                            ),
                     itemCount: value.filteredUsers.length,
                     itemBuilder: (context, index) {
                       final user = value.filteredUsers[index];
                       // print("user name ${user!.name! + user.age.toString() + user.location!}");
                       return Container(
                         padding: const EdgeInsets.symmetric(vertical: 5),
-                        //height: 250,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
                           border: const Border.fromBorderSide(
@@ -99,37 +110,38 @@ class _SearchScreenState extends State<SearchScreen> {
                         ),
                         child: Column(
                           children: [
+                            user.profileUrl!=null?
+                                Image.network(user.profileUrl!,height: 100,fit: BoxFit.contain,):
                             Image.asset(
                               image_logbg,
-                              height: 120,
+                              height: 100,
                               fit: BoxFit.fill,
                             ),
                             Expanded(
                                 child: Text(
-                                  user.name ?? "",
-                                  style: const TextStyle(
-                                      fontSize: 18, fontWeight: FontWeight.w600),
-                                )),
+                              user.name ?? "",
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.w600),
+                            )),
                             Expanded(
                                 child: Text(
-                                  user.age.toString() ?? "",
-                                  style: const TextStyle(
-                                      fontSize: 18, fontWeight: FontWeight.w600),
-                                )),
+                             "Age :${user.age}" ?? "",
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.w600),
+                            )),
                             Expanded(
                                 child: Text(
-                                  user.location ?? "",
-                                  style: const TextStyle(
-                                      fontSize: 18, fontWeight: FontWeight.w600),
-                                )),
+                              user.location ?? "",
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.w600),
+                            )),
                           ],
                         ),
                       );
                     },
                   ),
-                  ),
+                ),
               )
-
           ],
         ),
       ),
@@ -191,6 +203,7 @@ class _SearchScreenState extends State<SearchScreen> {
       ],
     );
   }
+
   Row cityDropDown() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,

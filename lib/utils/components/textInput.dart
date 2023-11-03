@@ -24,7 +24,6 @@ class _AuthTextInputState extends State<AuthTextInput> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      // margin: EdgeInsets.only(right: 10,left: 10),
       width: double.infinity,
       height: 50,
       decoration: BoxDecoration(
@@ -34,7 +33,6 @@ class _AuthTextInputState extends State<AuthTextInput> {
       child: TextFormField(
         controller: widget.controller,
         style: const TextStyle(
-         // color: Colors.grey,
         ),
         decoration: InputDecoration(
           errorStyle: const TextStyle(color: Colors.red, fontSize: 9,height: .3),

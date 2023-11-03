@@ -17,12 +17,6 @@ class Button extends StatelessWidget {
       height: height,
       width: double.infinity,
       child: TextButton(
-        /*shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(radius),
-    side: BorderSide(
-    color: borderColor??Colors.transparent,
-    width: 1,
-        ),),*/
         style: ButtonStyle(backgroundColor: MaterialStatePropertyAll<Color>(
             color!
         )),
