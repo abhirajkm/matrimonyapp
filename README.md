@@ -19,6 +19,7 @@ A Flutter project that fetches and displays data from an  API.
    - Login with registered credentials
 3.After successful login user can view the list of brides and grooms who already registered
 4.User can update personal details and profile image in view profile section
+5.Search using height , weight, location
 
 
 ##Features
