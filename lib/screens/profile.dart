@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
+import '../interface/user.dart';
 import '../providers/user.dart';
 import '../utils/components/custom_app_bar.dart';
 import '../utils/components/form_field.dart';
@@ -30,6 +31,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late TextEditingController _height;
   late TextEditingController _weight;
   String? selectedGender;
+  String? selectedLocation;
   String? url;
   final newKey = GlobalKey<FormState>();
   final GlobalKey<ScaffoldMessengerState> _scaffoldKey =
@@ -48,6 +50,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _weight = TextEditingController();
     final user = FirebaseAuth.instance.currentUser;
     if (user!.uid != null) {
+
       getUserDetails(user.uid).then((value) {
         if(value!=null){
           Provider.of<UserProvider>(context,listen:false).setProfileImage(url!);
@@ -69,7 +72,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _weight.text = user["weight"] ?? "";
       _dob.text = user["dob"] ?? "";
       _mobile.text = user["mobile"] ?? "";
-      _location.text = user["location"] ?? "";
+      selectedLocation = user["location"] ?? "Kottayam";
+      //selectedLocation = ;
       selectedGender = user["gender"];
       url=user["profileUrl"];
 
@@ -79,6 +83,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       print("user gender = ${user["gender"]}");
       print("user mobile = ${user["mobile"]}");
       print("user profile= ${user["profile"]}");
+      print("user location= ${user["location"]}");
     } else {
       return null;
     }
@@ -86,7 +91,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
   String? selectedHeight;
   String? selectedWeight;
-  String? selectedLocation;
+
 
   bool isEditable = false;
   File? _imageFile;
@@ -270,13 +275,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             return null;
                           },
                           formatter: MaskTextInputFormatter()),
-                      FormTextField(
+                      cityDropDown(),
+                      /*FormTextField(
                         controller: _location,
                         titleHint: "Location",
                         enabled: isEditable ? true : false,
                         hint: "Enter Location",
                         formatter: MaskTextInputFormatter(),
-                      ),
+                      ),*/
                       const SizedBox(
                         height: 25,
                       ),
@@ -329,7 +335,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         'height': _height.text,
         'weight': _weight.text,
         'dob': _dob.text,
-        'location': _location.text,
+        'location': selectedLocation,
       });
     } catch (err) {
       _scaffoldKey.currentState?.showSnackBar(SnackBar(
@@ -366,7 +372,78 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ],
     );
   }
+  Column cityDropDown() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        const Text("Location",
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            )),
+        const SizedBox(
+          height: 5.0,
+        ),
+
+        DropdownButton<String>(
+          value: selectedLocation,
+          icon: const Icon(Icons.arrow_drop_down),
+          iconSize: 24,
+          elevation: 16,
+          style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.black
+          ),
+          underline: Container(
+            height: 2,
+            color: Colors.black54,
+          ),
+          onChanged: (String? newValue) {
+            setState(() {
+              selectedLocation = newValue!;
+            });
+          },
+          items: locationList.map<DropdownMenuItem<String>>((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(value),
+            );
+          }).toList(),
+        ),
+        /*DropdownButton(
+            hint: const Text("City "),
+            value: selectedLocation!=""?selectedLocation:"",
+            icon: const Icon(Icons.arrow_drop_down),
+            iconSize: 24,
+            elevation: 16,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.black
+            ),
+            underline: Container(
+              height: 2,
+              color: Colors.black54,
+            ),
+            onChanged: (newValue) {
+              setState(() {
+                selectedLocation = newValue!;
+              });
+            },
+            items: locationList.map((f) {
+              return DropdownMenuItem(value: f, child: Text(f));
+            }).toList()),*/
+        const SizedBox(
+          height: 25,
+        )
+      ],
+    );
+  }
 }
+
 
 /*
 class ProfileImage extends StatefulWidget {

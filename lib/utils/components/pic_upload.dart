@@ -1,9 +1,11 @@
 
+import 'package:bridesandgrooms/model/user.dart';
 import 'package:bridesandgrooms/providers/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
@@ -65,10 +67,15 @@ class _ProfilePicUploadWidgetState extends State<ProfilePicUploadWidget> {
     });
 
   }
+
+
+
+
 @override
   void initState() {
   final uid = FirebaseAuth.instance.currentUser!.uid;
   final provider = Provider.of<UserProvider>(context,listen:false);
+  provider.resetImage();
     getUserDetails(uid).then((value) {
 
     });
@@ -77,6 +84,7 @@ class _ProfilePicUploadWidgetState extends State<ProfilePicUploadWidget> {
 
   @override
   Widget build(BuildContext context) {
+
     screenHeight = MediaQuery.of(context).size.height;
     screenWidth = MediaQuery.of(context).size.width;
     return Column(
@@ -92,18 +100,20 @@ class _ProfilePicUploadWidgetState extends State<ProfilePicUploadWidget> {
             alignment: Alignment.center,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              color: Colors.purple,
+              color: Colors.purple.withOpacity(.5),
             ),
-            child:Consumer<UserProvider>(
+            child:
+            Consumer<UserProvider>(
               builder: (context,user,child) {
+
                 return Center(
-                  child: user.imageUrl == "" ? const Icon(
+                  child: user.imageUrl.isEmpty ? const Icon(
                     Icons.person,
                     color: Colors.white,
                     size: 80,
                   ) : ClipRRect(
                     borderRadius: BorderRadius.circular(20),
-                    child: Image.network(user.imageUrl),
+                    child: Image.network(user.imageUrl,fit: BoxFit.fill,),
                   ),
                 );
               }
@@ -114,6 +124,8 @@ class _ProfilePicUploadWidgetState extends State<ProfilePicUploadWidget> {
       ],
     );
   }
+
+
   void _showPicker(context) {
     showModalBottomSheet(
         context: context,
@@ -148,6 +160,17 @@ class _ProfilePicUploadWidgetState extends State<ProfilePicUploadWidget> {
 
       final Map<String, dynamic> user = doc.data() as Map<String, dynamic>;
       final url = user['profileUrl'] ;
+      final profileImageUrl = url;
+
+      final userBox = await Hive.openBox<UserModel>('userdb');
+      final currentUser = userBox.get('currentUser');
+
+      if (currentUser != null) {
+        final updatedUser = UserModel(
+          profileUrl: profileImageUrl,
+        );
+        userBox.put('currentUser', updatedUser);
+      }
       provider.setProfileImage(url);
 
 
@@ -160,6 +183,15 @@ class _ProfilePicUploadWidgetState extends State<ProfilePicUploadWidget> {
     }
     else {
       return null;
+    }
+    return null;
+  }
+
+  Future<String?> getImageFromHive() async {
+    final userBox = await Hive.openBox<UserModel>('userdb');
+    final currentUser = userBox.get('currentUser');
+    if (currentUser!=null) {
+      return currentUser.profileUrl;
     }
     return null;
   }

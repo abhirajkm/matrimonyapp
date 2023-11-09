@@ -152,6 +152,7 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
           .signInWithEmailAndPassword(
               email: _email.text, password: _password.text)
           .then((value) async {
+        Provider.of<UserProvider>(context, listen: false).fetchFromFirestore();
         Navigator.pushNamed(context, HomeScreen.routeName);
       });
     } catch (e) {

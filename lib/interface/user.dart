@@ -21,10 +21,18 @@ List<String> weightList = <String>[
   '100'
 ];
 List<String> locationList = <String>[
-  'Trivandrum',
-  'Kochi',
-  'Kozhikode',
-  'Thrissur',
+  'Thiruvananthapuram',
   'Kollam',
-  'Kottayam'
+  'Pathanamthitta',
+  'Alappuzha',
+  'Kottayam',
+  'Idukki',
+  'Ernakulam',
+  'Thrissur',
+  'Palakkad',
+  'Malappuram',
+  'Kozhikode',
+  'Wayanad',
+  'Kannur',
+  'Kasaragod',
 ];

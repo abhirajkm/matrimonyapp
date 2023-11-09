@@ -69,10 +69,11 @@ class _SearchScreenState extends State<SearchScreen> {
                             fontWeight: FontWeight.w800),
                         loading: _loading,
                         onPressed: () async {
-
-                          Provider.of<UserProvider>(context, listen: false)
-                              .searchFilter(double.parse(maxheight!),
-                                  double.parse(maxweight!), selectedLocation!);
+                          final provider =
+                              Provider.of<UserProvider>(context, listen: false);
+                          provider.resetSearch();
+                          provider.searchFireFilter(double.parse(maxheight!),
+                              double.parse(maxweight!), selectedLocation!);
                         },
                         radius: 5,
                       ),
@@ -93,10 +94,10 @@ class _SearchScreenState extends State<SearchScreen> {
                     padding: const EdgeInsets.all(5),
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 10.0,
-                            mainAxisSpacing:10.0,
-                            ),
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 10.0,
+                      mainAxisSpacing: 10.0,
+                    ),
                     itemCount: value.filteredUsers.length,
                     itemBuilder: (context, index) {
                       final user = value.filteredUsers[index];
@@ -110,13 +111,17 @@ class _SearchScreenState extends State<SearchScreen> {
                         ),
                         child: Column(
                           children: [
-                            user.profileUrl!=null?
-                                Image.network(user.profileUrl!,height: 100,fit: BoxFit.contain,):
-                            Image.asset(
-                              image_logbg,
-                              height: 100,
-                              fit: BoxFit.fill,
-                            ),
+                            user.profileUrl != null
+                                ? Image.network(
+                                    user.profileUrl!,
+                                    height: 100,
+                                    fit: BoxFit.contain,
+                                  )
+                                : Image.asset(
+                                    image_dummy,
+                                    height: 100,
+                                    fit: BoxFit.fill,
+                                  ),
                             Expanded(
                                 child: Text(
                               user.name ?? "",
@@ -125,7 +130,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             )),
                             Expanded(
                                 child: Text(
-                             "Age :${user.age}" ?? "",
+                              "Age :${user.age}" ?? "",
                               style: const TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.w600),
                             )),

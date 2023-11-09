@@ -20,57 +20,54 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
-    Hive.box<UserModel>('userdb');
+    Provider.of<UserProvider>(context, listen: false).reset();
+    Provider.of<UserProvider>(context, listen: false).getUserDetails();
+    Provider.of<UserProvider>(context, listen: false).getImageFromHive();
     getData();
-    if (kDebugMode) {
-      print("Hive DB length = ${Hive.box<UserModel>('userdb').length}");
-    }
+
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<UserProvider>(context, listen: false);
     return Scaffold(
       appBar: const PreferredSize(
           preferredSize: Size.fromHeight(100), child: CustomAppBar()),
-      body: Container(
-          decoration: const BoxDecoration(
-              image: DecorationImage(
-                  image: AssetImage(image_blur), fit: BoxFit.fill)),
-          child: FutureBuilder(
-            future: getData(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                    child:
-                        CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Text('Error: ${snapshot.error}');
-              } else {
-                return RefreshIndicator(
-                  onRefresh: () => provider.fetchData(),
-                  child:
-                      Consumer<UserProvider>(builder: (context, value, child) {
-                    provider.fetchData();
-                    return HomeUserList(userList: value.homeList);
-                  }),
-                );
-              }
-            },
-          )),
+      body: RefreshIndicator(
+        onRefresh: () {
+          final provider = Provider.of<UserProvider>(context, listen: false);
+          provider.reset();
+          return provider.fetchFromFirestore();
+        },
+        child: Container(
+            decoration: const BoxDecoration(
+                image: DecorationImage(
+                    image: AssetImage(image_blur), fit: BoxFit.fill)),
+            child: FutureBuilder(
+              future: getData(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                } else {
+                  return Consumer<UserProvider>(builder: (context, value, child) {
+                      return value.firebaseList.isNotEmpty
+                    ? HomeUserList(userList: value.firebaseList)
+                    : const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    });
+                }
+              },
+            )),
+      ),
     );
   }
 
   Future<void> getData() async {
-    final db = Hive.box<UserModel>('userdb');
     final provider = Provider.of<UserProvider>(context, listen: false);
-
-    if (db.isEmpty) {
-      provider.getUsersFromFirestore().then((value) {
-        setState(() {});
-      });
-    }
+    provider.fetchFromFirestore();
   }
 }
 
@@ -104,7 +101,7 @@ class HomeUserList extends StatelessWidget {
                       fit: BoxFit.contain,
                     )
                   : Image.asset(
-                      image_logbg,
+                      image_dummy,
                       height: 100,
                       fit: BoxFit.fill,
                     ),
